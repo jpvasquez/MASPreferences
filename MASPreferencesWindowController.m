@@ -66,7 +66,7 @@ static NSString *const PreferencesKeyForViewBounds (NSString *identifier)
         [[self window] setTitle:self.title];
 
     if ([self.viewControllers count])
-        self.selectedViewController = [self viewControllerForIdentifier:[[NSUserDefaults standardUserDefaults] stringForKey:kMASPreferencesSelectedViewKey]] ?: [self.viewControllers objectAtIndex:0];
+        self.selectedViewController = [self viewControllerForIdentifier:[[NSUserDefaults standardUserDefaults] stringForKey:kMASPreferencesSelectedViewKey]] ?: (self.viewControllers)[0];
 
     NSString *origin = [[NSUserDefaults standardUserDefaults] stringForKey:kMASPreferencesFrameTopLeftKey];
     if (origin)
@@ -146,7 +146,7 @@ static NSString *const PreferencesKeyForViewBounds (NSString *identifier)
     NSUInteger controllerIndex = [identifiers indexOfObject:itemIdentifier];
     if (controllerIndex != NSNotFound)
     {
-        id <MASPreferencesViewController> controller = [_viewControllers objectAtIndex:controllerIndex];
+        id <MASPreferencesViewController> controller = _viewControllers[controllerIndex];
         toolbarItem.image = controller.toolbarItemImage;
         toolbarItem.label = controller.toolbarItemLabel;
         toolbarItem.target = self;
@@ -235,9 +235,9 @@ static NSString *const PreferencesKeyForViewBounds (NSString *identifier)
 
     // Retrieve current and minimum frame size for the view
     NSString *oldViewRectString = [[NSUserDefaults standardUserDefaults] stringForKey:PreferencesKeyForViewBounds(controller.identifier)];
-    NSString *minViewRectString = [_minimumViewRects objectForKey:controller.identifier];
+    NSString *minViewRectString = _minimumViewRects[controller.identifier];
     if (!minViewRectString)
-        [_minimumViewRects setObject:NSStringFromRect(controllerView.bounds) forKey:controller.identifier];
+        _minimumViewRects[controller.identifier] = NSStringFromRect(controllerView.bounds);
   
     BOOL sizableWidth;
     BOOL sizableHeight;
@@ -302,7 +302,7 @@ static NSString *const PreferencesKeyForViewBounds (NSString *identifier)
 - (void)selectControllerAtIndex:(NSUInteger)controllerIndex
 {
     if (NSLocationInRange(controllerIndex, NSMakeRange(0, _viewControllers.count)))
-        self.selectedViewController = [self.viewControllers objectAtIndex:controllerIndex];
+        self.selectedViewController = (self.viewControllers)[controllerIndex];
 }
 
 #pragma mark -
