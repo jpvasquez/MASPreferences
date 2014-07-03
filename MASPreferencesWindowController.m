@@ -22,6 +22,9 @@ static NSString *const PreferencesKeyForViewBounds (NSString *identifier)
 #pragma mark -
 
 @implementation MASPreferencesWindowController
+{
+  BOOL _patchResponderChain;
+}
 
 @synthesize viewControllers = _viewControllers;
 @synthesize selectedViewController = _selectedViewController;
@@ -158,28 +161,44 @@ static NSString *const PreferencesKeyForViewBounds (NSString *identifier)
 #pragma mark -
 #pragma mark Private methods
 
+- (BOOL)shouldPatchResponderChain
+{
+#if (__MAC_OS_X_VERSION_MAX_ALLOWED < 101000)
+  return YES;
+#else
+  BOOL yosemiteOrBetter = floor(NSFoundationVersionNumber) > NSFoundationVersionNumber10_9;
+  return !yosemiteOrBetter;
+#endif
+}
+
 - (void)clearResponderChain
 {
-    // Remove view controller from the responder chain
-    NSResponder *chainedController = self.window.nextResponder;
-    if ([self.viewControllers indexOfObject:chainedController] == NSNotFound)
-        return;
-    self.window.nextResponder = chainedController.nextResponder;
-    chainedController.nextResponder = nil;
+  if(![self shouldPatchResponderChain])
+    return;
+  
+  // Remove view controller from the responder chain
+  NSResponder *chainedController = self.window.nextResponder;
+  if ([self.viewControllers indexOfObject:chainedController] == NSNotFound)
+    return;
+  self.window.nextResponder = chainedController.nextResponder;
+  chainedController.nextResponder = nil;
 }
 
 - (void)patchResponderChain
 {
-    [self clearResponderChain];
+  if(![self shouldPatchResponderChain])
+    return;
+  
+  [self clearResponderChain];
     
-    NSViewController *selectedController = self.selectedViewController;
-    if (!selectedController)
-        return;
-    
-    // Add current controller to the responder chain
-    NSResponder *nextResponder = self.window.nextResponder;
-    self.window.nextResponder = selectedController;
-    selectedController.nextResponder = nextResponder;
+  NSViewController *selectedController = self.selectedViewController;
+  if (!selectedController)
+    return;
+  
+  // Add current controller to the responder chain
+  NSResponder *nextResponder = self.window.nextResponder;
+  self.window.nextResponder = selectedController;
+  selectedController.nextResponder = nextResponder;
 }
 
 - (NSViewController <MASPreferencesViewController> *)viewControllerForIdentifier:(NSString *)identifier
