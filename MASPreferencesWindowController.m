@@ -163,12 +163,8 @@ static NSString *const PreferencesKeyForViewBounds (NSString *identifier)
 
 - (BOOL)shouldPatchResponderChain
 {
-#if (__MAC_OS_X_VERSION_MAX_ALLOWED < 101000)
-  return YES;
-#else
   BOOL yosemiteOrBetter = floor(NSFoundationVersionNumber) > NSFoundationVersionNumber10_9;
   return !yosemiteOrBetter;
-#endif
 }
 
 - (void)clearResponderChain
